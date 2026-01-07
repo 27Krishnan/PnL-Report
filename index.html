@@ -328,6 +328,42 @@
             style="background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1.2rem; line-height: 1;">&times;</button>
     </div>
 
+    <!-- Drill Down Modal -->
+    <div id="details-modal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 800px; width: 90%;">
+            <div class="modal-header">
+                <h3 id="details-modal-title">Trade Details</h3>
+                <button id="close-details-modal" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body" style="overflow-y: auto; max-height: 60vh;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr>
+                            <th
+                                style="padding: 10px; text-align: left; border-bottom: 1px solid var(--border-color); color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase;">
+                                Date</th>
+                            <th
+                                style="padding: 10px; text-align: left; border-bottom: 1px solid var(--border-color); color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase;">
+                                Owner</th>
+                            <th
+                                style="padding: 10px; text-align: left; border-bottom: 1px solid var(--border-color); color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase;">
+                                Type</th>
+                            <th
+                                style="padding: 10px; text-align: left; border-bottom: 1px solid var(--border-color); color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase;">
+                                Exit Date</th>
+                            <th
+                                style="padding: 10px; text-align: right; border-bottom: 1px solid var(--border-color); color: var(--text-secondary); font-size: 0.8rem; text-transform: uppercase;">
+                                P/L</th>
+                        </tr>
+                    </thead>
+                    <tbody id="details-table-body">
+                        <!-- Rows -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 

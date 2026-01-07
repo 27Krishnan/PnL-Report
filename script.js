@@ -181,6 +181,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const tr = document.createElement('tr');
             const color = getColorForString(stat.name);
 
+            // Enable Drill Down
+            tr.style.cursor = 'pointer';
+            tr.title = 'Click to view trades';
+            tr.onclick = () => showDrillDown('Owner', stat.name);
+
             tr.innerHTML = `
                 <td>${index + 1}</td>
                 <td style="color: ${color}; font-weight: 500;">${stat.name}</td>
@@ -231,6 +236,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         sortedTypes.forEach((stat, index) => {
             const tr = document.createElement('tr');
+
+            // Enable Drill Down
+            tr.style.cursor = 'pointer';
+            tr.title = 'Click to view trades';
+            tr.onclick = () => showDrillDown('Type', stat.name);
+
             tr.innerHTML = `
                 <td>${index + 1}</td>
                 <td>${stat.name}</td>
@@ -430,12 +441,18 @@ document.addEventListener('DOMContentLoaded', () => {
         managingSourceKey = null;
     }
 
-    function renderManageList() {
+    function renderManageList(filterText = '') {
         managementList.innerHTML = '';
-        const list = appData[managingSourceKey] || [];
+        let list = appData[managingSourceKey] || [];
+
+        // Filter
+        if (filterText) {
+            const lowerFilter = filterText.toLowerCase();
+            list = list.filter(item => item.toLowerCase().includes(lowerFilter));
+        }
 
         if (list.length === 0) {
-            managementList.innerHTML = '<li style="text-align:center; color: var(--text-secondary); padding: 1rem;">No items saved</li>';
+            managementList.innerHTML = '<li style="text-align:center; color: var(--text-secondary); padding: 1rem;">No items found</li>';
             return;
         }
 
@@ -745,6 +762,31 @@ document.addEventListener('DOMContentLoaded', () => {
         plInput.addEventListener('input', updatePLColor);
         addSaveTrigger(plInput);
 
+        // --- Auto-Date & Validation ---
+        const exitDateInput = exitDateTd.querySelector('input');
+
+        const validateDate = (input) => {
+            if (!input.value) input.classList.add('missing-date');
+            else input.classList.remove('missing-date');
+        };
+
+        // Bind Validation
+        [dateInput, exitDateInput].forEach(input => {
+            input.addEventListener('input', () => validateDate(input));
+            input.addEventListener('blur', () => validateDate(input));
+            validateDate(input); // Initial state
+        });
+
+        // Auto-Fill Exit Date on P/L Entry
+        plInput.addEventListener('input', () => {
+            if (!exitDateInput.value) {
+                const today = new Date().toISOString().split('T')[0];
+                exitDateInput.value = today;
+                validateDate(exitDateInput);
+                saveTableRows();
+            }
+        });
+
         // Enter Navigation for P/L
         plInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
@@ -817,6 +859,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Or if we passed no data, it's a new row, so save.
         if (!data) {
             saveTableRows();
+            // Scroll to center for better visibility
+            requestAnimationFrame(() => {
+                tr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            });
         }
 
         // Focus on first input (Date) - Child index 1 now (0 is S.No)
@@ -1173,6 +1219,12 @@ document.addEventListener('DOMContentLoaded', () => {
         modalAddInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') handleModalAdd();
         });
+        // Search/Filter capability
+        modalAddInput.addEventListener('input', (e) => {
+            if (typeof renderManageList === 'function') {
+                renderManageList(e.target.value);
+            }
+        });
     }
 
     // --- Settings UI Logic ---
@@ -1462,6 +1514,69 @@ document.addEventListener('DOMContentLoaded', () => {
             updateRowTimestamp(e.target);
             saveTableRows();
         });
+    }
+
+    // --- Drill Down Logic ---
+    const detailsModal = document.getElementById('details-modal');
+    const detailsModalTitle = document.getElementById('details-modal-title');
+    const closeDetailsModal = document.getElementById('close-details-modal');
+    const detailsTableBody = document.getElementById('details-table-body');
+
+    if (closeDetailsModal) {
+        closeDetailsModal.addEventListener('click', () => {
+            if (detailsModal) detailsModal.classList.add('hidden');
+        });
+    }
+    if (detailsModal) {
+        detailsModal.addEventListener('click', (e) => {
+            if (e.target === detailsModal) detailsModal.classList.add('hidden');
+        });
+    }
+
+    function showDrillDown(filterType, filterValue) {
+        if (!detailsModal) return;
+        if (detailsModalTitle) detailsModalTitle.textContent = `${filterType}: ${filterValue} - Trades`;
+        if (detailsTableBody) detailsTableBody.innerHTML = '';
+
+        const trs = document.getElementById('table-body').querySelectorAll('tr');
+        let count = 0;
+
+        trs.forEach(tr => {
+            const inputs = tr.querySelectorAll('input');
+            if (inputs.length < 5) return;
+
+            const dateVal = inputs[0].value || '--';
+            const ownerVal = inputs[1].value.trim();
+            const typeVal = inputs[2].value.trim();
+            const exitVal = inputs[3].value || '--';
+            const plVal = parseFloat(inputs[4].value);
+
+            let match = false;
+            if (filterType === 'Owner' && ownerVal === filterValue) match = true;
+            if (filterType === 'Type' && typeVal === filterValue) match = true;
+
+            if (match) {
+                const row = document.createElement('tr');
+                const plClass = !isNaN(plVal) ? (plVal >= 0 ? 'positive' : 'negative') : '';
+                const plDisplay = !isNaN(plVal) ? plVal.toFixed(2) : '0.00';
+
+                row.innerHTML = `
+                    <td style="padding: 10px; border-bottom: 1px solid var(--border-color); color: var(--text-primary);">${dateVal}</td>
+                    <td style="padding: 10px; border-bottom: 1px solid var(--border-color); color: ${getColorForString(ownerVal)}; font-weight: 500;">${ownerVal}</td>
+                    <td style="padding: 10px; border-bottom: 1px solid var(--border-color); color: var(--text-primary);">${typeVal}</td>
+                    <td style="padding: 10px; border-bottom: 1px solid var(--border-color); color: var(--text-primary);">${exitVal}</td>
+                    <td style="padding: 10px; text-align: right; border-bottom: 1px solid var(--border-color); font-family: 'JetBrains Mono', monospace;" class="${plClass}">${plDisplay}</td>
+                 `;
+                if (detailsTableBody) detailsTableBody.appendChild(row);
+                count++;
+            }
+        });
+
+        if (count === 0 && detailsTableBody) {
+            detailsTableBody.innerHTML = '<tr><td colspan="4" style="padding: 20px; text-align: center; color: var(--text-secondary);">No trades found</td></tr>';
+        }
+
+        detailsModal.classList.remove('hidden');
     }
 
 });

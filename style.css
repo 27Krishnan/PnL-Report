@@ -148,6 +148,10 @@ th {
     z-index: 200;
 }
 
+.view-section {
+    padding-bottom: 30vh;
+}
+
 /* Specific Column Widths to resemble Excel - SCOPED TO MAIN TABLE */
 
 /* 1. S.No */
@@ -313,6 +317,16 @@ th.sortable.desc::after {
     background-color: var(--input-bg);
     border-color: var(--accent-color);
     box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.cell-input.missing-date {
+    border-color: var(--danger-color);
+    background-color: rgba(239, 68, 68, 0.05);
+}
+
+.cell-input.missing-date:focus {
+    border-color: var(--danger-color);
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
 }
 
 /* Date Input Styling */
