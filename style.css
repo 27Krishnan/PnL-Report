@@ -47,7 +47,15 @@ body {
 }
 
 header {
-    margin-bottom: 0.5rem;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: var(--bg-color);
+    /* Compensate for container padding */
+    margin: -2rem -2rem 1rem -2rem;
+    padding: 2rem 2rem 1rem 2rem;
+    border-bottom: 1px solid var(--border-color);
+    border-radius: 16px 16px 0 0;
 }
 
 .header-content {

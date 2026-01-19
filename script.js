@@ -346,6 +346,29 @@ document.addEventListener('DOMContentLoaded', () => {
                             }
                         }
                     }
+                },
+                onClick: (e, elements) => {
+                    if (elements.length > 0) {
+                        const index = elements[0].index;
+                        const chart = elements[0].element.$context.chart;
+                        const label = chart.data.labels[index];
+                        const datasetLabel = chart.data.datasets[0].label;
+
+                        if (datasetLabel === 'Daily P/L') {
+                            showDrillDown('Date', label);
+                        } else if (datasetLabel === 'Net P/L') {
+                            // This handles both Owner and Type charts since they both use 'Net P/L' in createChartConfig calls
+                            // We'll detect if it's Owner or Type by checking which instance it is
+                            if (chart === ownerChart) {
+                                showDrillDown('Owner', label);
+                            } else if (chart === typeChart) {
+                                showDrillDown('Type', label);
+                            }
+                        }
+                    }
+                },
+                onHover: (e, elements) => {
+                    e.native.target.style.cursor = elements.length ? 'pointer' : 'default';
                 }
             }
         };
@@ -1554,6 +1577,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let match = false;
             if (filterType === 'Owner' && ownerVal === filterValue) match = true;
             if (filterType === 'Type' && typeVal === filterValue) match = true;
+            if (filterType === 'Date' && exitVal === filterValue) match = true;
 
             if (match) {
                 const row = document.createElement('tr');
