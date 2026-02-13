@@ -25,6 +25,8 @@
                 <div class="view-toggle">
                     <button id="btn-view-table" class="toggle-btn active">Table Entry</button>
                     <button id="btn-view-dashboard" class="toggle-btn">Dashboard</button>
+                    <button id="btn-view-monthly" class="toggle-btn">Monthly View</button>
+                    <button id="btn-view-portfolio" class="toggle-btn">Portfolio Sheet</button>
                     <button id="btn-settings" class="icon-btn" title="Settings"
                         style="background: none; border: none; cursor: pointer; color: var(--text-secondary); margin-left: 10px;">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -73,10 +75,19 @@
                 </table>
             </div>
 
-            <div class="table-actions" style="display: flex; gap: 10px; margin-top: 15px;">
+            <div class="table-actions" style="display: flex; align-items: center; gap: 15px; margin-top: 15px;">
                 <button id="add-row-btn" class="add-btn">
                     <span class="btn-icon">+</span> Add Row
                 </button>
+
+                <div class="toggle-container" style="display: flex; align-items: center; gap: 8px; margin-left: auto;">
+                    <label class="switch">
+                        <input type="checkbox" id="toggle-minimize-past">
+                        <span class="slider round"></span>
+                    </label>
+                    <span style="font-size: 0.85rem; color: var(--text-secondary);">Minimize Past Months</span>
+                </div>
+
                 <button id="btn-recycle-bin" class="btn"
                     style="background: var(--surface-card); color: var(--text-secondary); border: 1px solid var(--border-color); display: flex; align-items: center; gap: 6px;">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -88,6 +99,11 @@
                     </svg>
                     Restorable Deleted Items
                 </button>
+
+                <div id="table-total-summary" class="total-summary-badge">
+                    <span class="label">Total Net P/L:</span>
+                    <span id="table-total-pl" class="value">0.00</span>
+                </div>
             </div>
         </main>
 
@@ -95,24 +111,60 @@
             <div class="dashboard-grid">
                 <!-- Summary Cards -->
                 <div class="card summary-card">
+                    <div class="info-icon"
+                        data-tooltip="NET P&L&#10;Your absolute bottom line.&#10;Formula: Sum of Profits - Sum of Losses&#10;Why: To know total money made or lost.">
+                        i</div>
                     <h3>Net P&L</h3>
                     <div class="metric-value" id="dash-net-pl">--</div>
                     <div class="metric-label">Total Profit/Loss</div>
                 </div>
                 <div class="card summary-card">
+                    <div class="info-icon"
+                        data-tooltip="TOTAL TRADES&#10;The count of all executed trades.&#10;Formula: Count of rows with Exit Date&#10;Why: To understand your trading activity level.">
+                        i</div>
                     <h3>Total Trades</h3>
                     <div class="metric-value" id="dash-total-trades">0</div>
                     <div class="metric-label">Count</div>
                 </div>
                 <div class="card summary-card">
+                    <div class="info-icon"
+                        data-tooltip="WIN RATE&#10;Percentage of profitable trades.&#10;Formula: (Wins / Total) * 100&#10;Why: To see how often you are right vs wrong.">
+                        i</div>
                     <h3>Win Rate</h3>
                     <div class="metric-value" id="dash-win-rate">--%</div>
                     <div class="metric-label">Profitable Trades</div>
                 </div>
                 <div class="card summary-card">
+                    <div class="info-icon"
+                        data-tooltip="PROFIT FACTOR&#10;Ratio of gross profit to gross loss.&#10;Formula: Gross Profit / Gross Loss&#10;Why: Shows if wins are larger than losses.">
+                        i</div>
                     <h3>Profit Factor</h3>
                     <div class="metric-value" id="dash-profit-factor">--</div>
                     <div class="metric-label">Gross Win / Gross Loss</div>
+                </div>
+                <div class="card summary-card">
+                    <div class="info-icon"
+                        data-tooltip="EXPECTANCY&#10;Average expected win/loss per trade.&#10;Formula: (Win% * Avg Win) - (Loss% * Avg Loss)&#10;Why: Proves your strategy has a mathematical edge.">
+                        i</div>
+                    <h3>Expectancy</h3>
+                    <div class="metric-value" id="dash-expectancy">--</div>
+                    <div class="metric-label">Exp. value per trade</div>
+                </div>
+                <div class="card summary-card">
+                    <div class="info-icon"
+                        data-tooltip="RECOVERY FACTOR&#10;Performance relative to risk (drawdown).&#10;Formula: Net Profit / Max Drawdown&#10;Why: Tells if profit was worth the pain of risk.">
+                        i</div>
+                    <h3>Recovery Factor</h3>
+                    <div class="metric-value" id="dash-recovery-factor">--</div>
+                    <div class="metric-label">Net P&L / Max DD</div>
+                </div>
+                <div class="card summary-card">
+                    <div class="info-icon"
+                        data-tooltip="RISK : REWARD&#10;Relationship between Avg Win and Avg Loss.&#10;Formula: Average Win / Average Loss&#10;Why: Shows if you are cutting losses and letting winners run.">
+                        i</div>
+                    <h3>Risk : Reward</h3>
+                    <div class="metric-value" id="dash-rr-ratio">--</div>
+                    <div class="metric-label">Avg Win / Avg Loss</div>
                 </div>
             </div>
 
@@ -125,10 +177,12 @@
                         <table class="report-table">
                             <thead>
                                 <tr>
-                                    <th>Rank</th>
+                                    <th class="col-rank">Rank</th>
                                     <th>Owner</th>
-                                    <th>Total P/L</th>
-                                    <th>Trades</th>
+                                    <th class="col-pl text-right">Total P/L</th>
+                                    <th class="col-trades text-right">Trades</th>
+                                    <th class="col-win text-right">Win %</th>
+                                    <th class="col-rr text-right">RR</th>
                                 </tr>
                             </thead>
                             <tbody id="owner-pl-body">
@@ -145,10 +199,12 @@
                         <table class="report-table">
                             <thead>
                                 <tr>
-                                    <th>Rank</th>
+                                    <th class="col-rank">Rank</th>
                                     <th>Type</th>
-                                    <th>Total P/L</th>
-                                    <th>Trades</th>
+                                    <th class="col-pl text-right">Total P/L</th>
+                                    <th class="col-trades text-right">Trades</th>
+                                    <th class="col-win text-right">Win %</th>
+                                    <th class="col-rr text-right">RR</th>
                                 </tr>
                             </thead>
                             <tbody id="type-pl-body">
@@ -189,11 +245,11 @@
                         <table class="report-table">
                             <thead>
                                 <tr>
-                                    <th>Rank</th>
+                                    <th class="col-rank">Rank</th>
                                     <th>Owner</th>
                                     <th>Type</th>
-                                    <th>Total P/L</th>
-                                    <th>Trades</th>
+                                    <th class="col-pl text-right">Total P/L</th>
+                                    <th class="col-trades text-right">Trades</th>
                                 </tr>
                             </thead>
                             <tbody id="detailed-pl-body">
@@ -201,6 +257,389 @@
                             </tbody>
                         </table>
                     </div>
+                </div>
+            </div>
+        </main>
+
+        <main id="view-monthly" class="view-section hidden">
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 2rem;">
+                <div
+                    style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; background: var(--bg-secondary); padding: 0.5rem 1rem; border-radius: 20px; border: 1px solid var(--border-color); box-shadow: 0 2px 10px rgba(0,0,0,0.2);">
+                    <label for="toggle-include-current"
+                        style="cursor: pointer; color: var(--text-secondary); font-weight: 500;">Include Current Month
+                        in Overall Metrics</label>
+                    <input type="checkbox" id="toggle-include-current" checked
+                        style="cursor: pointer; width: 16px; height: 16px;">
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <!-- Monthly Summary Cards -->
+                <div class="card summary-card">
+                    <div class="info-icon"
+                        data-tooltip="TOTAL MONTHLY P&L&#10;Aggregate profit or loss across all active months.&#10;Formula: Sum(Monthly P&L)&#10;Why: To see long-term cumulative performance.">
+                        i</div>
+                    <h3>Total Monthly P&L</h3>
+                    <div class="metric-value" id="monthly-total-pl">--</div>
+                    <div class="metric-label">All Months Combined</div>
+                </div>
+                <div class="card summary-card">
+                    <div class="info-icon"
+                        data-tooltip="AVG MONTHLY P&L&#10;Average profit or loss per month.&#10;Formula: Total P&L / Count of Months&#10;Why: To understand your average monthly income.">
+                        i</div>
+                    <h3>Avg Monthly P&L</h3>
+                    <div class="metric-value" id="monthly-avg-pl">--</div>
+                    <div class="metric-label">Per Active Month</div>
+                </div>
+                <div class="card summary-card">
+                    <div class="info-icon"
+                        data-tooltip="BEST MONTH&#10;Your highest single-month profit record.&#10;Formula: Max(Monthly P&L)&#10;Why: To identify your peak performance period.">
+                        i</div>
+                    <h3>Best Month</h3>
+                    <div class="metric-value" id="monthly-best-val">--</div>
+                    <div class="metric-label" id="monthly-best-label">N/A</div>
+                </div>
+                <div class="card summary-card">
+                    <div class="info-icon"
+                        data-tooltip="LOWEST MONTH&#10;Your worst single-month loss record.&#10;Formula: Min(Monthly P&L)&#10;Why: To identify your highest risk period.">
+                        i</div>
+                    <h3>Lowest Month</h3>
+                    <div class="metric-value" id="monthly-lowest-val">--</div>
+                    <div class="metric-label" id="monthly-lowest-label">N/A</div>
+                </div>
+            </div>
+
+            <!-- Monthly Trading Calendar (Heatmap) -->
+            <div class="card calendar-card" style="margin-top: 2rem; margin-bottom: 2rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <div style="display: flex; align-items: center; gap: 1.5rem;">
+                        <h3 class="card-title" style="margin-bottom: 0;">Trading Calendar</h3>
+                        <div id="calendar-grand-total-container"
+                            style="font-size: 0.9rem; font-weight: 600; padding: 4px 12px; border-radius: 6px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); display: none;">
+                            <span style="color: var(--text-secondary); margin-right: 8px;">Selected Range Total:</span>
+                            <span id="calendar-grand-total-value">₹0.00</span>
+                        </div>
+                    </div>
+                    <div class="calendar-legend"
+                        style="display: flex; gap: 1rem; font-size: 0.75rem; color: var(--text-secondary);">
+                        <div style="display: flex; align-items: center; gap: 4px;"><span
+                                style="width: 8px; height: 8px; border-radius: 50%; background: var(--success-color);"></span>
+                            Profit</div>
+                        <div style="display: flex; align-items: center; gap: 4px;"><span
+                                style="width: 8px; height: 8px; border-radius: 50%; background: var(--danger-color);"></span>
+                            Loss</div>
+                        <div style="display: flex; align-items: center; gap: 4px;"><span
+                                style="width: 8px; height: 8px; border-radius: 50%; border: 1px solid var(--border-color);"></span>
+                            No Trade</div>
+                    </div>
+                </div>
+
+                <!-- Date Range Selector -->
+                <div class="calendar-range-container">
+                    <span class="range-label">Date Range:</span>
+                    <div class="range-buttons">
+                        <button class="range-btn" data-range="1w">Week</button>
+                        <button class="range-btn" data-range="15d">15 Days</button>
+                        <button class="range-btn" data-range="1m">Month</button>
+                        <button class="range-btn" data-range="3m">3 Months</button>
+                        <button class="range-btn active" data-range="1y">Year</button>
+                        <button class="range-btn" data-range="custom">Custom</button>
+                    </div>
+
+                    <!-- Custom Range Picker -->
+                    <div id="calendar-custom-picker" class="hidden"
+                        style="display: flex; align-items: center; gap: 8px; margin-left: 12px; padding-left: 12px; border-left: 1px solid rgba(255,255,255,0.1);">
+                        <input type="date" id="calendar-start-date" class="range-input">
+                        <span style="color: var(--text-secondary); font-size: 0.8rem;">to</span>
+                        <input type="date" id="calendar-end-date" class="range-input">
+                        <button id="calendar-apply-custom" class="range-btn active"
+                            style="padding: 4px 10px;">Apply</button>
+                        <button id="calendar-clear-custom" class="range-btn"
+                            style="padding: 4px 10px; background: rgba(255,255,255,0.05);">Clear</button>
+                    </div>
+                </div>
+
+                <div id="monthly-calendar-container" class="calendar-grid">
+                    <!-- Months will be generated here -->
+                </div>
+            </div>
+
+            <div class="dashboard-grid" style="grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem;">
+                <!-- Advanced Metrics -->
+                <div class="card summary-card">
+                    <div class="info-icon"
+                        data-tooltip="AVG TRADE&#10;The mathematical average profit or loss per executed trade.&#10;Formula: Net P&L / Total Trades&#10;Why: To see what each individual entry is worth on average.">
+                        i</div>
+                    <h3>Avg Trade</h3>
+                    <div class="metric-value" id="monthly-avg-trade">--</div>
+                    <div class="metric-label">Per Trade</div>
+                </div>
+                <div class="card summary-card">
+                    <div class="info-icon"
+                        data-tooltip="EXPECTANCY&#10;Expected value per trade based on win/loss probability.&#10;Formula: (Win% * Avg Win) - (Loss% * Avg Loss)&#10;Why: The core proof that your trading edge is profitable.">
+                        i</div>
+                    <h3>Expectancy</h3>
+                    <div class="metric-value" id="monthly-expectancy">--</div>
+                    <div class="metric-label">Exp. value per trade</div>
+                </div>
+                <div class="card summary-card">
+                    <div class="info-icon"
+                        data-tooltip="RECOVERY FACTOR&#10;How well your profit covers your risk exposure.&#10;Formula: Net Profit / Max Drawdown&#10;Why: To see if you are making enough profit for the risk taken.">
+                        i</div>
+                    <h3>Recovery Factor</h3>
+                    <div class="metric-value" id="monthly-recovery-factor">--</div>
+                    <div class="metric-label">Net Profit / Max DD</div>
+                </div>
+                <div class="card summary-card">
+                    <div class="info-icon"
+                        data-tooltip="RISK : REWARD&#10;Ratio of average winning amount to average losing amount.&#10;Formula: Avg Win / Avg Loss&#10;Why: To ensure that your winners are larger than your losers.">
+                        i</div>
+                    <h3>Risk : Reward</h3>
+                    <div class="metric-value" id="monthly-rr-ratio">--</div>
+                    <div class="metric-label">Avg Win / Avg Loss</div>
+                </div>
+                <div class="card summary-card">
+                    <div class="info-icon"
+                        data-tooltip="MAX DRAWDOWN&#10;The largest 'peak to valley' drop in your account balance.&#10;Formula: Max(Peak PL - Valley PL after peak)&#10;Why: To understand your emotional and financial risk limit.">
+                        i</div>
+                    <h3>Max Drawdown</h3>
+                    <div class="metric-value" id="monthly-max-drawdown">--</div>
+                    <div class="metric-label">Peak to Trough</div>
+                    <div class="metric-detail" id="monthly-max-drawdown-detail">
+                        <div class="metric-detail-item">
+                            <span class="metric-detail-label">Date:</span>
+                            <span class="metric-detail-value" id="monthly-max-drawdown-date">--</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card summary-card">
+                    <div class="info-icon"
+                        data-tooltip="BEST STREAK&#10;The most consecutive winning trades in your record.&#10;Formula: Max continuous count of Win trades&#10;Why: Highlights periods of strategy efficiency.">
+                        i</div>
+                    <h3>Best Streak</h3>
+                    <div class="metric-value positive" id="monthly-best-streak">--</div>
+                    <div class="metric-label">Wins In a Row</div>
+                    <div class="metric-detail" id="monthly-best-streak-detail">
+                        <div class="metric-detail-item">
+                            <span class="metric-detail-label">Range:</span>
+                            <span class="metric-detail-value" id="monthly-best-streak-range">--</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card summary-card">
+                    <div class="info-icon"
+                        data-tooltip="WORST STREAK&#10;The most consecutive losing trades in your record.&#10;Formula: Max continuous count of Loss trades&#10;Why: Highlights the psychological pressure limit of your strategy.">
+                        i</div>
+                    <h3>Worst Streak</h3>
+                    <div class="metric-value negative" id="monthly-worst-streak">--</div>
+                    <div class="metric-label">Losses In a Row</div>
+                    <div class="metric-detail" id="monthly-worst-streak-detail">
+                        <div class="metric-detail-item">
+                            <span class="metric-detail-label">Range:</span>
+                            <span class="metric-detail-value" id="monthly-worst-streak-range">--</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card summary-card">
+                    <div class="info-icon"
+                        data-tooltip="BIGGEST WIN&#10;The single most profitable trade in your history.&#10;Formula: Max(P&L)&#10;Why: To see your strategy's maximum profit potential.">
+                        i</div>
+                    <h3>Biggest Win</h3>
+                    <div class="metric-value positive" id="monthly-biggest-win">--</div>
+                    <div class="metric-label">Top Trade</div>
+                    <div class="metric-detail" id="monthly-biggest-win-detail">
+                        <div class="metric-detail-item">
+                            <span class="metric-detail-label">Date:</span>
+                            <span class="metric-detail-value" id="monthly-biggest-win-date">--</span>
+                        </div>
+                        <div class="metric-detail-item">
+                            <span class="metric-detail-label">Owner:</span>
+                            <span class="metric-detail-value" id="monthly-biggest-win-owner">--</span>
+                        </div>
+                        <div class="metric-detail-item">
+                            <span class="metric-detail-label">Type:</span>
+                            <span class="metric-detail-value" id="monthly-biggest-win-type">--</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card summary-card">
+                    <div class="info-icon"
+                        data-tooltip="BIGGEST LOSS&#10;The single worst losing trade in your history.&#10;Formula: Min(P&L)&#10;Why: To identify risks and outliers that need better management.">
+                        i</div>
+                    <h3>Biggest Loss</h3>
+                    <div class="metric-value negative" id="monthly-biggest-loss">--</div>
+                    <div class="metric-label">Worst Trade</div>
+                    <div class="metric-detail" id="monthly-biggest-loss-detail">
+                        <div class="metric-detail-item">
+                            <span class="metric-detail-label">Date:</span>
+                            <span class="metric-detail-value" id="monthly-biggest-loss-date">--</span>
+                        </div>
+                        <div class="metric-detail-item">
+                            <span class="metric-detail-label">Owner:</span>
+                            <span class="metric-detail-value" id="monthly-biggest-loss-owner">--</span>
+                        </div>
+                        <div class="metric-detail-item">
+                            <span class="metric-detail-label">Type:</span>
+                            <span class="metric-detail-value" id="monthly-biggest-loss-type">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monthly Trend Chart -->
+            <div class="card chart-card" style="margin-bottom: 2rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h3 class="card-title" style="margin-bottom: 0;">P&L Trend</h3>
+                    <div class="view-toggle"
+                        style="background: var(--surface-color); border: 1px solid var(--border-color); padding: 2px;">
+                        <button id="btn-toggle-monthly-trend" class="toggle-btn active"
+                            style="font-size: 0.75rem; padding: 4px 12px;">Monthly</button>
+                        <button id="btn-toggle-daily-trend" class="toggle-btn"
+                            style="font-size: 0.75rem; padding: 4px 12px;">Daily</button>
+                    </div>
+                </div>
+                <div class="chart-container" style="position: relative; height: 300px;">
+                    <canvas id="monthlyTrendChart"></canvas>
+                    <canvas id="monthlyDailyChart" class="hidden"></canvas>
+                </div>
+            </div>
+
+            <div class="card" style="margin-bottom: 2rem;">
+                <h3 class="card-title">Monthly Performance</h3>
+                <div class="table-container">
+                    <table class="report-table">
+                        <thead>
+                            <tr>
+                                <th class="col-month">Month</th>
+                                <th class="col-pl text-right">Total P/L</th>
+                                <th class="col-trades text-right">Trades</th>
+                                <th class="col-win text-right">Win Rate</th>
+                                <th class="col-pf text-right">Profit Factor</th>
+                            </tr>
+                        </thead>
+                        <tbody id="monthly-pl-body">
+                            <!-- Monthly data will be here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="reports-container">
+                <!-- Overall Owner Performance -->
+                <div class="report-column card">
+                    <h3 class="card-title">Overall Owner Performance</h3>
+                    <div class="table-container">
+                        <table class="report-table">
+                            <thead>
+                                <tr>
+                                    <th class="col-rank">Rank</th>
+                                    <th>Owner</th>
+                                    <th class="col-pl text-right">Total P/L</th>
+                                    <th class="col-trades text-right">Trades</th>
+                                </tr>
+                                <tr class="filter-row">
+                                    <th></th>
+                                    <th><input type="text" id="filter-monthly-owner" class="filter-input"
+                                            placeholder="Search Owner..."></th>
+                                    <th></th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="monthly-overall-owner-body">
+                                <!-- Data will be here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Overall Type Performance -->
+                <div class="report-column card">
+                    <h3 class="card-title">Overall Type Performance</h3>
+                    <div class="table-container">
+                        <table class="report-table">
+                            <thead>
+                                <tr>
+                                    <th class="col-rank">Rank</th>
+                                    <th>Type</th>
+                                    <th class="col-pl text-right">Total P/L</th>
+                                    <th class="col-trades text-right">Trades</th>
+                                </tr>
+                                <tr class="filter-row">
+                                    <th></th>
+                                    <th><input type="text" id="filter-monthly-type" class="filter-input"
+                                            placeholder="Search Type..."></th>
+                                    <th></th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="monthly-overall-type-body">
+                                <!-- Data will be here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Overall Detailed Performance (Full Width) -->
+                <div class="report-column card" style="grid-column: span 2;">
+                    <h3 class="card-title">Overall Detailed Performance (Owner + Type)</h3>
+                    <div class="table-container">
+                        <table class="report-table">
+                            <thead>
+                                <tr>
+                                    <th class="col-rank">Rank</th>
+                                    <th>Owner</th>
+                                    <th>Type</th>
+                                    <th class="col-pl text-right">Total P/L</th>
+                                    <th class="col-trades text-right">Trades</th>
+                                </tr>
+                                <tr class="filter-row">
+                                    <th></th>
+                                    <th><input type="text" id="filter-monthly-det-owner" class="filter-input"
+                                            placeholder="Search Owner..."></th>
+                                    <th><input type="text" id="filter-monthly-det-type" class="filter-input"
+                                            placeholder="Search Type..."></th>
+                                    <th></th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="monthly-overall-detailed-body">
+                                <!-- Data will be here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <main id="view-portfolio" class="view-section hidden">
+            <div class="table-container">
+                <table id="portfolio-table">
+                    <thead>
+                        <tr>
+                            <th class="sno-col">S.No</th>
+                            <th>Name</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Fund (Capital)</th>
+                            <th>Handling Charges</th>
+                            <th>Monthly Profit</th>
+                            <th>Profit Sharing</th>
+                            <th>Net Profit</th>
+                            <th>Remark</th>
+                            <th class="actions-col"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="portfolio-body">
+                        <!-- Rows will be added here dynamically -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="table-actions" style="display: flex; align-items: center; gap: 15px; margin-top: 15px;">
+                <button id="add-portfolio-row-btn" class="add-btn">
+                    <span class="btn-icon">+</span> Add Portfolio Entry
+                </button>
+                <div id="portfolio-total-summary" class="total-summary-badge" style="margin-left: auto;">
+                    <span class="label">Total Net Profit:</span>
+                    <span id="portfolio-total-net" class="value">0.00</span>
                 </div>
             </div>
         </main>
@@ -250,6 +689,9 @@
                 </div>
 
                 <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button id="btn-pull-data" class="btn"
+                        style="background: var(--surface-hover); color: var(--accent-color); border: 1px solid var(--accent-color); margin-right: auto;">Sync
+                        From Sheets (Restore)</button>
                     <button id="btn-test-sync" class="btn"
                         style="background: var(--surface-hover); color: var(--text-primary); border: 1px solid var(--border-color);">Test
                         Sync</button>

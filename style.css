@@ -14,6 +14,10 @@
     --glass-border: rgba(255, 255, 255, 0.08);
 }
 
+.hidden {
+    display: none !important;
+}
+
 * {
     box-sizing: border-box;
     margin: 0;
@@ -93,6 +97,24 @@ header {
     background: var(--accent-color);
     color: white;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.graph-btn {
+    border: 1px solid var(--border-color) !important;
+    background: var(--surface-color) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.graph-btn:hover {
+    background: var(--surface-hover) !important;
+    border-color: var(--accent-color) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.graph-btn .btn-icon {
+    margin-right: 4px;
+    font-size: 1rem;
 }
 
 .logo {
@@ -209,7 +231,7 @@ th {
 /* 8. REMARK */
 #data-table th:nth-child(8),
 #data-table td:nth-child(8) {
-    /* Flexible width */
+    min-width: 150px;
 }
 
 #data-table th.actions-col,
@@ -661,7 +683,7 @@ tr:hover .delete-btn {
 
 .dashboard-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1.5rem;
     padding: 1rem 0;
 }
@@ -738,17 +760,38 @@ tr:hover .delete-btn {
     top: 0;
 }
 
-/* Report Table Specific Widths */
-.report-table th:last-child,
-.report-table td:last-child {
-    width: 80px;
-    /* Reduced width for Trades column */
+/* Report Table Column Alignments */
+.report-table th,
+.report-table td {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    /* Default */
+    border-bottom: 1px solid var(--border-color);
+}
+
+.text-center {
+    text-align: center !important;
+}
+
+.text-right {
+    text-align: right !important;
+}
+
+/* Optional specific widths */
+.col-rank {
+    width: 50px;
     text-align: center;
 }
 
-.report-table td {
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid var(--border-color);
+.col-trades,
+.col-win,
+.col-rr {
+    width: 80px;
+    text-align: right;
+}
+
+.col-pl {
+    text-align: right;
 }
 
 .pl-text {
@@ -780,4 +823,439 @@ tr:hover .delete-btn {
     .reports-container {
         grid-template-columns: 1fr;
     }
+}
+
+/* --- Metric Detail Styling --- */
+.metric-detail {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.summary-card {
+    position: relative;
+}
+
+.info-icon {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    cursor: help;
+    width: 18px;
+    height: 18px;
+    background: var(--surface-hover);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-color);
+    transition: all 0.2s;
+    z-index: 10;
+}
+
+.info-icon:hover {
+    color: var(--accent-color);
+    border-color: var(--accent-color);
+    background: var(--bg-color);
+}
+
+/* Tooltip container */
+.info-icon::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    top: 0;
+    right: 130%;
+    width: 260px;
+    padding: 12px;
+    background: #1e293b;
+    color: var(--text-primary);
+    font-size: 0.75rem;
+    line-height: 1.5;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+    white-space: pre-wrap;
+    text-align: left;
+    z-index: 100;
+}
+
+/* Tooltip arrow */
+.info-icon::after {
+    content: '';
+    position: absolute;
+    top: 5px;
+    right: 110%;
+    border-width: 6px;
+    border-style: solid;
+    border-color: transparent transparent transparent var(--border-color);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+}
+
+.info-icon:hover::before {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-5px);
+}
+
+.info-icon:hover::after {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-5px);
+}
+
+.metric-detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.metric-detail-label {
+    opacity: 0.6;
+    font-weight: 400;
+}
+
+.metric-detail-value {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+/* --- Monthly Details Drill-down --- */
+.monthly-details-row {
+    background-color: rgba(255, 255, 255, 0.01) !important;
+}
+
+.monthly-details-container {
+    padding: 24px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.monthly-details-section {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 12px;
+    padding: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.monthly-details-section h4 {
+    margin-top: 0;
+    margin-bottom: 16px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.monthly-sub-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.monthly-sub-table th,
+.monthly-sub-table td {
+    padding: 10px 8px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.monthly-sub-table th {
+    color: var(--text-secondary);
+    font-weight: 500;
+    font-size: 0.75rem;
+    opacity: 0.6;
+}
+
+.monthly-sub-table tr:last-child td {
+    border-bottom: none;
+}
+
+.monthly-details-row.hidden {
+    display: none;
+}
+
+tr.month-row {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+tr.month-row:hover {
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+.chevron-icon {
+    display: inline-block;
+    transition: transform 0.3s ease;
+    margin-right: 12px;
+    color: var(--accent-color);
+    font-size: 1.1rem;
+    font-weight: bold;
+}
+
+.month-row.expanded .chevron-icon {
+    transform: rotate(90deg);
+}
+
+@media (max-width: 1200px) {
+    .monthly-details-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* --- Switch Toggle Styling --- */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 36px;
+    height: 20px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.1);
+    transition: .4s;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 2px;
+    bottom: 2px;
+    background-color: var(--text-secondary);
+    transition: .4s;
+}
+
+input:checked+.slider {
+    background-color: var(--accent-color);
+}
+
+input:checked+.slider:before {
+    transform: translateX(16px);
+    background-color: white;
+}
+
+.slider.round {
+    border-radius: 20px;
+}
+
+/* --- Total Summary Badge --- */
+.total-summary-badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface-card);
+    border: 1px solid var(--border-color);
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    margin-left: 10px;
+}
+
+.total-summary-badge .label {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.total-summary-badge .value {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.total-summary-badge .value.positive {
+    color: var(--success-color);
+}
+
+.total-summary-badge .value.negative {
+    color: var(--danger-color);
+}
+
+/* --- Trading Calendar (Heatmap) --- */
+.calendar-card {
+    transition: all 0.3s ease;
+}
+
+.calendar-range-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 1.5rem;
+    padding: 0 0.5rem;
+}
+
+.range-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.range-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.range-btn {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-secondary);
+    padding: 5px 14px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.range-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-primary);
+}
+
+.range-btn.active {
+    background: rgba(74, 144, 226, 0.1);
+    border-color: rgba(74, 144, 226, 0.5);
+    color: #4a90e2;
+}
+
+.range-input {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    outline: none;
+    color-scheme: dark;
+    transition: border-color 0.2s;
+}
+
+.range-input:focus {
+    border-color: rgba(74, 144, 226, 0.5);
+}
+
+#calendar-custom-picker.hidden {
+    display: none !important;
+}
+
+.calendar-grid {
+    display: flex;
+    justify-content: flex-start;
+    gap: 2rem;
+    overflow-x: auto;
+    padding: 1rem 0.5rem;
+}
+
+.month-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 140px;
+}
+
+.month-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.weekday-headers {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    width: 100%;
+    margin-bottom: 6px;
+    padding: 0 8px;
+}
+
+.weekday-header {
+    font-size: 0.6rem;
+    color: var(--text-secondary);
+    text-align: center;
+    font-weight: 500;
+    opacity: 0.5;
+}
+
+.days-dots-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    width: 100%;
+}
+
+.calendar-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: all 0.2s ease;
+    cursor: help;
+}
+
+.calendar-dot:hover {
+    transform: scale(1.5);
+    z-index: 10;
+}
+
+.calendar-dot.profit {
+    background: var(--success-color);
+    border-color: transparent;
+}
+
+.calendar-dot.loss {
+    background: var(--danger-color);
+    border-color: transparent;
+}
+
+.calendar-dot.empty {
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.month-total-pl {
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.slider.round:before {
+    border-radius: 50%;
 }
